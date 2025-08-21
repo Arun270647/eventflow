@@ -31,7 +31,8 @@ export function AuthForm({ mode, onToggleMode, onForgotPassword }) {
 
     try {
       if (isSignUp) {
-        const { error } = await signUp(formData?.email, formData?.password, {
+        // Enhanced signup flow with role handling
+        const { data, error } = await signUp(formData?.email, formData?.password, {
           full_name: formData?.fullName,
           role: formData?.role
         });
@@ -39,13 +40,42 @@ export function AuthForm({ mode, onToggleMode, onForgotPassword }) {
         if (error) {
           setError(error);
         } else {
-          setSuccess('Account created successfully! Please check your email to verify your account.');
+          if (formData?.role === 'artist') {
+            // For artists, redirect to application form
+            setSuccess('Account created successfully! Please complete your artist application.');
+            setTimeout(() => {
+              navigate('/artist-application-form');
+            }, 2000);
+          } else {
+            // For regular users, redirect to user dashboard
+            setSuccess('Account created successfully! Welcome to EventFlow.');
+            setTimeout(() => {
+              navigate('/user-portal-dashboard');
+            }, 2000);
+          }
         }
       } else {
-        const { error } = await signIn(formData?.email, formData?.password);
+        // Sign in flow with role-based routing
+        const { data, error } = await signIn(formData?.email, formData?.password);
         
         if (error) {
           setError(error);
+        } else {
+          // Get user role and redirect accordingly
+          const userRole = data?.user?.user_metadata?.role || 'user';
+          
+          switch (userRole) {
+            case 'admin':
+              navigate('/admin-dashboard');
+              break;
+            case 'artist':
+              navigate('/artist-portal-dashboard');
+              break;
+            case 'user':
+            default:
+              navigate('/user-portal-dashboard');
+              break;
+          }
         }
       }
     } catch (err) {

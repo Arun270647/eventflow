@@ -1,12 +1,9 @@
 import React, { useState } from 'react';
-
-
-
-
-
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
 
-export function AuthForm({ onToggleMode, isSignUp = false }) {
+export function AuthForm({ mode, onToggleMode, onForgotPassword }) {
+  const navigate = useNavigate();
   const { signIn, signUp, loading } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
@@ -16,6 +13,9 @@ export function AuthForm({ onToggleMode, isSignUp = false }) {
   });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [showRoleSelection, setShowRoleSelection] = useState(false);
+
+  const isSignUp = mode === 'register';
 
   const handleChange = (e) => {
     setFormData({

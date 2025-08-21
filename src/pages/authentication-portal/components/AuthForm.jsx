@@ -131,9 +131,20 @@ export function AuthForm({ mode, onToggleMode, onForgotPassword }) {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Password
-          </label>
+          <div className="flex items-center justify-between mb-1">
+            <label className="block text-sm font-medium text-gray-700">
+              Password
+            </label>
+            {!isSignUp && (
+              <button
+                type="button"
+                onClick={onForgotPassword}
+                className="text-sm text-blue-600 hover:text-blue-700"
+              >
+                Forgot password?
+              </button>
+            )}
+          </div>
           <input
             type="password"
             name="password"

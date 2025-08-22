@@ -68,7 +68,7 @@ const ArtistApplicationForm = () => {
   // Auto-save draft every 30 seconds
   useEffect(() => {
     const autoSaveInterval = setInterval(() => {
-      if (Object.keys(formData)?.length > 0) {
+      if (Object.keys(formData).length > 0) {
         saveDraft();
       }
     }, 30000);
@@ -83,7 +83,7 @@ const ArtistApplicationForm = () => {
     };
     
     localStorage.setItem('artistApplicationDraft', JSON.stringify(draftData));
-    localStorage.setItem('artistApplicationStep', currentStep?.toString());
+    localStorage.setItem('artistApplicationStep', currentStep.toString());
     setIsDraftSaved(true);
     setLastSavedAt(new Date());
     
@@ -97,7 +97,7 @@ const ArtistApplicationForm = () => {
     }));
     
     // Clear error for this field
-    if (errors?.[field]) {
+    if (errors[field]) {
       setErrors(prev => ({
         ...prev,
         [field]: null
@@ -110,41 +110,41 @@ const ArtistApplicationForm = () => {
 
     switch (currentStep) {
       case 1: // Personal Info
-        if (!formData?.firstName?.trim()) newErrors.firstName = 'First name is required';
-        if (!formData?.lastName?.trim()) newErrors.lastName = 'Last name is required';
-        if (!formData?.stageName?.trim()) newErrors.stageName = 'Stage/Artist name is required';
-        if (!formData?.email?.trim()) newErrors.email = 'Email is required';
-        else if (!/\S+@\S+\.\S+/?.test(formData?.email)) newErrors.email = 'Invalid email format';
-        if (!formData?.phone?.trim()) newErrors.phone = 'Phone number is required';
-        if (!formData?.address?.trim()) newErrors.address = 'Address is required';
-        if (!formData?.city?.trim()) newErrors.city = 'City is required';
-        if (!formData?.state?.trim()) newErrors.state = 'State is required';
-        if (!formData?.zipCode?.trim()) newErrors.zipCode = 'ZIP code is required';
-        if (!formData?.country?.trim()) newErrors.country = 'Country is required';
-        if (!formData?.dateOfBirth?.trim()) newErrors.dateOfBirth = 'Date of birth is required';
+        if (!formData.firstName?.trim()) newErrors.firstName = 'First name is required';
+        if (!formData.lastName?.trim()) newErrors.lastName = 'Last name is required';
+        if (!formData.stageName?.trim()) newErrors.stageName = 'Stage/Artist name is required';
+        if (!formData.email?.trim()) newErrors.email = 'Email is required';
+        else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = 'Invalid email format';
+        if (!formData.phone?.trim()) newErrors.phone = 'Phone number is required';
+        if (!formData.address?.trim()) newErrors.address = 'Address is required';
+        if (!formData.city?.trim()) newErrors.city = 'City is required';
+        if (!formData.state?.trim()) newErrors.state = 'State is required';
+        if (!formData.zipCode?.trim()) newErrors.zipCode = 'ZIP code is required';
+        if (!formData.country?.trim()) newErrors.country = 'Country is required';
+        if (!formData.dateOfBirth?.trim()) newErrors.dateOfBirth = 'Date of birth is required';
         else {
           const birthDate = new Date(formData.dateOfBirth);
           const today = new Date();
-          const age = today?.getFullYear() - birthDate?.getFullYear();
+          const age = today.getFullYear() - birthDate.getFullYear();
           if (age < 18) newErrors.dateOfBirth = 'Must be 18 years or older';
         }
         break;
 
       case 2: // Musical Background
-        if (!formData?.primaryGenre?.trim()) newErrors.primaryGenre = 'Primary genre is required';
-        if (!formData?.primaryInstrument?.trim()) newErrors.primaryInstrument = 'Primary instrument is required';
-        if (!formData?.experienceLevel?.trim()) newErrors.experienceLevel = 'Experience level is required';
-        if (!formData?.performanceType?.trim()) newErrors.performanceType = 'Performance type is required';
-        if (!formData?.yearsOfExperience) newErrors.yearsOfExperience = 'Years of experience is required';
-        if (!formData?.performanceExperience?.length) newErrors.performanceExperience = 'Select at least one performance experience';
+        if (!formData.primaryGenre?.trim()) newErrors.primaryGenre = 'Primary genre is required';
+        if (!formData.primaryInstrument?.trim()) newErrors.primaryInstrument = 'Primary instrument is required';
+        if (!formData.experienceLevel?.trim()) newErrors.experienceLevel = 'Experience level is required';
+        if (!formData.performanceType?.trim()) newErrors.performanceType = 'Performance type is required';
+        if (!formData.yearsOfExperience) newErrors.yearsOfExperience = 'Years of experience is required';
+        if (!formData.performanceExperience?.length) newErrors.performanceExperience = 'Select at least one performance experience';
         break;
 
       case 3: // Portfolio Links
-        if (!formData?.portfolioLinks?.length || !formData?.portfolioLinks?.[0]?.platform || !formData?.portfolioLinks?.[0]?.url) {
+        if (!formData.portfolioLinks?.length || !formData.portfolioLinks[0]?.platform || !formData.portfolioLinks[0]?.url) {
           newErrors.portfolioLinks = 'At least one portfolio link is required';
         } else {
-          formData?.portfolioLinks?.forEach((link, index) => {
-            if (link?.url && !/^https?:\/\/.+/?.test(link?.url)) {
+          formData.portfolioLinks.forEach((link, index) => {
+            if (link.url && !/^https?:\/\/.+/.test(link.url)) {
               newErrors[`portfolioLinks.${index}.url`] = 'Please enter a valid URL';
             }
           });
@@ -152,10 +152,10 @@ const ArtistApplicationForm = () => {
         break;
 
       case 4: // Bio & Statement
-        if (!formData?.bio?.trim()) newErrors.bio = 'Artist bio is required';
-        else if (formData?.bio?.length < 100) newErrors.bio = 'Bio must be at least 100 characters';
-        if (!formData?.artistStatement?.trim()) newErrors.artistStatement = 'Artist statement is required';
-        else if (formData?.artistStatement?.length < 50) newErrors.artistStatement = 'Statement must be at least 50 characters';
+        if (!formData.bio?.trim()) newErrors.bio = 'Artist bio is required';
+        else if (formData.bio.length < 100) newErrors.bio = 'Bio must be at least 100 characters';
+        if (!formData.artistStatement?.trim()) newErrors.artistStatement = 'Artist statement is required';
+        else if (formData.artistStatement.length < 50) newErrors.artistStatement = 'Statement must be at least 50 characters';
         break;
 
       case 5: // File Uploads (optional)
@@ -168,7 +168,7 @@ const ArtistApplicationForm = () => {
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors)?.length === 0;
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleNext = () => {
@@ -200,12 +200,14 @@ const ArtistApplicationForm = () => {
       // Submit application to database
       const applicationData = await artistService.submitArtistApplication(formData, user.id);
       
+      console.log('Application submitted successfully:', applicationData);
+      
       // Clear saved draft
       localStorage.removeItem('artistApplicationDraft');
       localStorage.removeItem('artistApplicationStep');
       
       // Show success and redirect
-      alert('Application submitted successfully! You will receive a confirmation email once reviewed by our team.');
+      alert('Application submitted successfully! You will receive a confirmation email once reviewed by our admin team.');
       navigate('/artist-portal-dashboard');
       
     } catch (error) {
@@ -278,19 +280,19 @@ const ArtistApplicationForm = () => {
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Name:</span>
-                      <span className="text-foreground">{formData?.firstName} {formData?.lastName}</span>
+                      <span className="text-foreground">{formData.firstName} {formData.lastName}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Stage Name:</span>
-                      <span className="text-foreground font-medium">{formData?.stageName}</span>
+                      <span className="text-foreground font-medium">{formData.stageName}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Email:</span>
-                      <span className="text-foreground">{formData?.email}</span>
+                      <span className="text-foreground">{formData.email}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Location:</span>
-                      <span className="text-foreground">{formData?.city}, {formData?.state}</span>
+                      <span className="text-foreground">{formData.city}, {formData.state}</span>
                     </div>
                   </div>
                 </div>
@@ -300,19 +302,19 @@ const ArtistApplicationForm = () => {
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Primary Genre:</span>
-                      <span className="text-foreground capitalize">{formData?.primaryGenre}</span>
+                      <span className="text-foreground capitalize">{formData.primaryGenre}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Instrument:</span>
-                      <span className="text-foreground capitalize">{formData?.primaryInstrument}</span>
+                      <span className="text-foreground capitalize">{formData.primaryInstrument}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Experience:</span>
-                      <span className="text-foreground capitalize">{formData?.experienceLevel}</span>
+                      <span className="text-foreground capitalize">{formData.experienceLevel}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Years:</span>
-                      <span className="text-foreground">{formData?.yearsOfExperience} years</span>
+                      <span className="text-foreground">{formData.yearsOfExperience} years</span>
                     </div>
                   </div>
                 </div>
@@ -324,19 +326,19 @@ const ArtistApplicationForm = () => {
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Portfolio Links:</span>
-                      <span className="text-foreground">{formData?.portfolioLinks?.length || 0} links</span>
+                      <span className="text-foreground">{formData.portfolioLinks?.length || 0} links</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Uploaded Files:</span>
-                      <span className="text-foreground">{formData?.uploadedFiles?.length || 0} files</span>
+                      <span className="text-foreground">{formData.uploadedFiles?.length || 0} files</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Bio Length:</span>
-                      <span className="text-foreground">{formData?.bio?.length || 0} characters</span>
+                      <span className="text-foreground">{formData.bio?.length || 0} characters</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Statement Length:</span>
-                      <span className="text-foreground">{formData?.artistStatement?.length || 0} characters</span>
+                      <span className="text-foreground">{formData.artistStatement?.length || 0} characters</span>
                     </div>
                   </div>
                 </div>
@@ -391,7 +393,7 @@ const ArtistApplicationForm = () => {
                 <span className={isDraftSaved ? "text-success" : "text-muted-foreground"}>
                   {isDraftSaved 
                     ? "Draft saved" 
-                    : `Last saved: ${lastSavedAt?.toLocaleTimeString()}`
+                    : `Last saved: ${lastSavedAt.toLocaleTimeString()}`
                   }
                 </span>
               </div>

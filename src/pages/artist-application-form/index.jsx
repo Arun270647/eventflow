@@ -18,6 +18,7 @@ import SubmissionModal from './components/SubmissionModal';
 
 const ArtistApplicationForm = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({});
   const [errors, setErrors] = useState({});
@@ -36,10 +37,10 @@ const ArtistApplicationForm = () => {
     'Review & Submit'
   ];
 
-  // Mock user data
+  // Current user data from auth context
   const currentUser = {
-    name: 'Alex Johnson',
-    email: 'alex.johnson@example.com',
+    name: user?.user_metadata?.full_name || user?.email || 'Artist',
+    email: user?.email || '',
     role: 'artist',
     avatar: null
   };

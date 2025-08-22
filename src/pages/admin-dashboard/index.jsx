@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
+import { artistService } from '../../services/artistService';
+import { emailService } from '../../services/emailService';
 import { AuthenticatedHeader } from '../../components/ui/AuthenticatedHeader';
 import RoleBasedSidebar from '../../components/ui/RoleBasedSidebar';
 import NavigationBreadcrumbs from '../../components/ui/NavigationBreadcrumbs';
@@ -12,199 +15,234 @@ import Button from '../../components/ui/Button';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
+  const { user, signOut } = useAuth();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
+  const [applications, setApplications] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [statistics, setStatistics] = useState([]);
 
-  // Mock admin user data
+  // Admin user data
   const adminUser = {
-    name: 'Sarah Johnson',
-    email: 'sarah.admin@eventflow.com',
+    name: user?.user_metadata?.full_name || user?.email || 'Admin',
+    email: user?.email || '',
     role: 'admin',
     avatar: null
   };
 
-  // Mock applications data
-  const [applications, setApplications] = useState([
-    {
-      id: 1,
-      artistName: 'Marcus Rivera',
-      email: 'marcus.rivera@email.com',
-      genre: 'Jazz',
-      experience: 8,
-      location: 'New York, NY',
-      phone: '+1 (555) 123-4567',
-      submissionDate: '2025-08-18T10:30:00Z',
-      status: 'pending',
-      bio: `Passionate jazz musician with over 8 years of professional experience. I specialize in contemporary jazz fusion and have performed at numerous venues across the East Coast.\n\nMy musical journey began in college where I studied music theory and composition. Since then, I've been part of several jazz ensembles and have released two independent albums that received critical acclaim in the jazz community.`,
-      portfolioLinks: [
-        { platform: 'Spotify', url: 'https://spotify.com/marcus-rivera' },
-        { platform: 'YouTube', url: 'https://youtube.com/marcus-rivera-music' },
-        { platform: 'SoundCloud', url: 'https://soundcloud.com/marcus-rivera' }
-      ]
-    },
-    {
-      id: 2,
-      artistName: 'Elena Vasquez',email: 'elena.v@email.com',genre: 'Classical',experience: 12,location: 'Los Angeles, CA',phone: '+1 (555) 987-6543',submissionDate: '2025-08-17T14:15:00Z',status: 'approved',
-      bio: `Classically trained violinist with 12 years of professional orchestral experience. I have performed with major symphony orchestras and chamber music ensembles worldwide.\n\nMy repertoire spans from Baroque to contemporary classical music, with a particular passion for romantic era compositions. I hold a Master's degree in Violin Performance from Juilliard School.`,
-      portfolioLinks: [
-        { platform: 'Website', url: 'https://elenavasquez.com' },
-        { platform: 'YouTube', url: 'https://youtube.com/elena-violin' }
-      ]
-    },
-    {
-      id: 3,
-      artistName: 'DJ Phoenix',
-      email: 'djphoenix@email.com',
-      genre: 'Electronic',
-      experience: 5,
-      location: 'Miami, FL',
-      phone: '+1 (555) 456-7890',
-      submissionDate: '2025-08-16T09:45:00Z',
-      status: 'pending',
-      bio: `Electronic music producer and DJ specializing in progressive house and techno. I've been creating music for 5 years and have performed at major festivals and clubs across the Southeast.\n\nMy sound combines melodic elements with driving beats, creating an immersive experience for dance floors. I use cutting-edge production techniques and live performance technology.`,
-      portfolioLinks: [
-        { platform: 'SoundCloud', url: 'https://soundcloud.com/dj-phoenix' },
-        { platform: 'Mixcloud', url: 'https://mixcloud.com/dj-phoenix' },
-        { platform: 'Instagram', url: 'https://instagram.com/djphoenix_official' }
-      ]
-    },
-    {
-      id: 4,
-      artistName: 'The Harmony Collective',email: 'info@harmonycollective.com',genre: 'Folk',experience: 6,location: 'Nashville, TN',phone: '+1 (555) 321-0987',submissionDate: '2025-08-15T16:20:00Z',status: 'rejected',
-      bio: `Four-piece folk band known for our harmonious vocals and acoustic arrangements. We've been performing together for 6 years, drawing inspiration from traditional American folk music while incorporating modern storytelling.\n\nOur music focuses on themes of community, nature, and human connection. We've released three albums and have toured extensively throughout the Midwest and South.`,
-      portfolioLinks: [
-        { platform: 'Bandcamp', url: 'https://harmonycollective.bandcamp.com' },
-        { platform: 'Spotify', url: 'https://spotify.com/harmony-collective' }
-      ]
-    },
-    {
-      id: 5,
-      artistName: 'Aria Chen',email: 'aria.chen.music@email.com',genre: 'Pop',experience: 3,location: 'San Francisco, CA',phone: '+1 (555) 654-3210',submissionDate: '2025-08-14T11:30:00Z',status: 'pending',
-      bio: `Singer-songwriter with a passion for creating catchy pop melodies with meaningful lyrics. Though relatively new to the professional scene with 3 years of experience, I've already gained a strong following on social media platforms.\n\nMy music blends contemporary pop with indie influences, often featuring personal stories and social commentary. I write, perform, and produce all my own material.`,
-      portfolioLinks: [
-        { platform: 'TikTok', url: 'https://tiktok.com/@ariachen_music' },
-        { platform: 'Instagram', url: 'https://instagram.com/aria_chen_music' },
-        { platform: 'YouTube', url: 'https://youtube.com/aria-chen-official' }
-      ]
-    }
-  ]);
-
-  // Mock statistics data
-  const statistics = [
-    {
-      title: 'Total Users',
-      value: '2,847',
-      change: '+12% from last month',
-      changeType: 'positive',
-      icon: 'Users',
-      color: 'primary'
-    },
-    {
-      title: 'Pending Applications',
-      value: '23',
-      change: '+5 new today',
-      changeType: 'positive',
-      icon: 'FileText',
-      color: 'warning'
-    },
-    {
-      title: 'Approved Artists',
-      value: '156',
-      change: '+8 this week',
-      changeType: 'positive',
-      icon: 'Check',
-      color: 'success'
-    },
-    {
-      title: 'Active Events',
-      value: '42',
-      change: '+3 upcoming',
-      changeType: 'positive',
-      icon: 'Calendar',
-      color: 'primary'
-    }
-  ];
-
-  // Mock activity feed data
+  // Mock activity feed data (in production, this would come from database)
   const [activities] = useState([
     {
       id: 1,
       type: 'application_submitted',
       title: 'New Artist Application',
-      description: 'Marcus Rivera submitted an application for Jazz category',
-      timestamp: '2025-08-21T09:30:00Z',
-      metadata: { user: 'Marcus Rivera', location: 'New York, NY' }
+      description: 'An artist submitted an application for review',
+      timestamp: new Date().toISOString(),
+      metadata: { user: 'New Artist', location: 'Various' }
     },
     {
       id: 2,
       type: 'application_approved',
       title: 'Application Approved',
-      description: 'Elena Vasquez application has been approved and credentials sent',
-      timestamp: '2025-08-21T08:15:00Z',
-      metadata: { user: 'Elena Vasquez' }
+      description: 'An artist application has been approved and credentials sent',
+      timestamp: new Date(Date.now() - 3600000).toISOString(),
+      metadata: { user: 'Approved Artist' }
     },
     {
       id: 3,
       type: 'user_registered',
       title: 'New User Registration',
-      description: 'John Smith registered as a new user',
-      timestamp: '2025-08-21T07:45:00Z',
-      metadata: { user: 'John Smith' }
-    },
-    {
-      id: 4,
-      type: 'event_created',
-      title: 'Event Created',
-      description: 'Summer Jazz Festival 2025 event has been created',
-      timestamp: '2025-08-20T16:20:00Z',
-      metadata: { location: 'Central Park, NY' }
-    },
-    {
-      id: 5,
-      type: 'application_rejected',
-      title: 'Application Rejected',
-      description: 'The Harmony Collective application was rejected due to incomplete portfolio',
-      timestamp: '2025-08-20T14:10:00Z',
-      metadata: { user: 'The Harmony Collective' }
+      description: 'A new user registered on the platform',
+      timestamp: new Date(Date.now() - 7200000).toISOString(),
+      metadata: { user: 'New User' }
     }
   ]);
 
+  // Load applications from database
+  useEffect(() => {
+    loadApplications();
+  }, []);
+
+  const loadApplications = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const data = await artistService.getPendingApplications();
+      
+      // Transform data to match expected format
+      const transformedApplications = data.map(app => {
+        const formData = JSON.parse(app.admin_notes || '{}');
+        const portfolioData = JSON.parse(app.portfolio_attachments || '{}');
+        
+        return {
+          id: app.id,
+          artistName: formData.stageName || `${formData.firstName} ${formData.lastName}`,
+          email: formData.email || app.artist?.email,
+          genre: formData.primaryGenre || 'Unknown',
+          experience: parseInt(formData.yearsOfExperience) || 0,
+          location: `${formData.city || 'Unknown'}, ${formData.state || 'Unknown'}`,
+          phone: formData.phone || 'Not provided',
+          submissionDate: app.submitted_at,
+          status: app.status,
+          bio: formData.bio || '',
+          portfolioLinks: portfolioData.portfolioLinks || [],
+          formData: formData,
+          originalApplication: app
+        };
+      });
+      
+      setApplications(transformedApplications);
+      
+      // Update statistics
+      const pending = transformedApplications.filter(app => app.status === 'pending').length;
+      const approved = transformedApplications.filter(app => app.status === 'approved').length;
+      const total = transformedApplications.length;
+      
+      setStatistics([
+        {
+          title: 'Total Applications',
+          value: total.toString(),
+          change: `+${pending} new`,
+          changeType: 'positive',
+          icon: 'FileText',
+          color: 'primary'
+        },
+        {
+          title: 'Pending Applications',
+          value: pending.toString(),
+          change: pending > 0 ? `${pending} awaiting review` : 'All reviewed',
+          changeType: pending > 0 ? 'warning' : 'positive',
+          icon: 'Clock',
+          color: 'warning'
+        },
+        {
+          title: 'Approved Artists',
+          value: approved.toString(),
+          change: approved > 0 ? `${approved} approved` : 'None yet',
+          changeType: 'positive',
+          icon: 'Check',
+          color: 'success'
+        },
+        {
+          title: 'Success Rate',
+          value: total > 0 ? `${Math.round((approved / total) * 100)}%` : '0%',
+          change: 'Based on total applications',
+          changeType: 'positive',
+          icon: 'TrendingUp',
+          color: 'primary'
+        }
+      ]);
+      
+    } catch (err) {
+      console.error('Error loading applications:', err);
+      setError('Failed to load applications. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Filter applications based on search and filters
-  const filteredApplications = applications?.filter(app => {
+  const filteredApplications = applications.filter(app => {
     const matchesSearch = !searchTerm || 
-      app?.artistName?.toLowerCase()?.includes(searchTerm?.toLowerCase()) ||
-      app?.email?.toLowerCase()?.includes(searchTerm?.toLowerCase());
+      app.artistName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      app.email.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesStatus = statusFilter === 'all' || app?.status === statusFilter;
+    const matchesStatus = statusFilter === 'all' || app.status === statusFilter;
     
-    const matchesDateRange = (!dateRange?.start || new Date(app.submissionDate) >= new Date(dateRange.start)) &&
-                            (!dateRange?.end || new Date(app.submissionDate) <= new Date(dateRange.end));
+    const matchesDateRange = (!dateRange.start || new Date(app.submissionDate) >= new Date(dateRange.start)) &&
+                            (!dateRange.end || new Date(app.submissionDate) <= new Date(dateRange.end));
     
     return matchesSearch && matchesStatus && matchesDateRange;
   });
 
-  const handleStatusChange = (applicationId, newStatus) => {
-    setApplications(prev => prev?.map(app => 
-      app?.id === applicationId ? { ...app, status: newStatus } : app
-    ));
-    
-    // Mock notification - in real app, this would trigger email notification
-    const application = applications?.find(app => app?.id === applicationId);
-    if (application) {
-      console.log(`Status changed for ${application?.artistName}: ${newStatus}`);
+  const handleStatusChange = async (applicationId, newStatus, reason = '') => {
+    try {
+      setLoading(true);
+      
+      const application = applications.find(app => app.id === applicationId);
+      if (!application) return;
+
+      let result;
       if (newStatus === 'approved') {
-        console.log(`Credentials generated and sent to ${application?.email}`);
+        // Approve application and create artist profile
+        result = await artistService.approveArtistApplication(applicationId, user.id);
+        
+        // Send approval email
+        try {
+          await emailService.sendArtistApprovalEmail({
+            email: application.email,
+            fullName: `${application.formData.firstName} ${application.formData.lastName}`,
+            stageName: application.formData.stageName
+          });
+          console.log(`Approval email sent to ${application.email}`);
+        } catch (emailError) {
+          console.error('Failed to send approval email:', emailError);
+          // Continue with approval even if email fails
+        }
+        
+      } else if (newStatus === 'rejected') {
+        // Reject application
+        result = await artistService.rejectArtistApplication(applicationId, user.id, reason);
+        
+        // Send rejection email
+        try {
+          await emailService.sendArtistRejectionEmail({
+            email: application.email,
+            fullName: `${application.formData.firstName} ${application.formData.lastName}`,
+            stageName: application.formData.stageName
+          }, reason);
+          console.log(`Rejection email sent to ${application.email}`);
+        } catch (emailError) {
+          console.error('Failed to send rejection email:', emailError);
+          // Continue with rejection even if email fails
+        }
       }
+
+      // Update local state
+      setApplications(prev => prev.map(app => 
+        app.id === applicationId ? { ...app, status: newStatus } : app
+      ));
+      
+      // Show success message
+      const action = newStatus === 'approved' ? 'approved' : 'rejected';
+      alert(`Application ${action} successfully! ${newStatus === 'approved' ? 'Approval' : 'Rejection'} email has been sent.`);
+      
+      // Reload applications to get fresh data
+      setTimeout(() => {
+        loadApplications();
+      }, 1000);
+      
+    } catch (error) {
+      console.error(`Error ${newStatus === 'approved' ? 'approving' : 'rejecting'} application:`, error);
+      alert(`Failed to ${newStatus === 'approved' ? 'approve' : 'reject'} application: ${error.message}`);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleBulkAction = (action, selectedIds) => {
-    setApplications(prev => prev?.map(app => 
-      selectedIds?.includes(app?.id) ? { ...app, status: action === 'approve' ? 'approved' : 'rejected' } : app
-    ));
-    console.log(`Bulk ${action} applied to ${selectedIds?.length} applications`);
+  const handleBulkAction = async (action, selectedIds) => {
+    try {
+      setLoading(true);
+      
+      const promises = selectedIds.map(id => 
+        handleStatusChange(id, action === 'approve' ? 'approved' : 'rejected')
+      );
+      
+      await Promise.all(promises);
+      
+      console.log(`Bulk ${action} applied to ${selectedIds.length} applications`);
+      alert(`Successfully ${action === 'approve' ? 'approved' : 'rejected'} ${selectedIds.length} applications.`);
+      
+    } catch (error) {
+      console.error('Error with bulk action:', error);
+      alert(`Failed to perform bulk action: ${error.message}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleClearFilters = () => {
@@ -213,20 +251,38 @@ const AdminDashboard = () => {
     setDateRange({ start: '', end: '' });
   };
 
-  const handleLogout = () => {
-    navigate('/authentication-portal');
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      navigate('/authentication-portal');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
+
+  if (loading && applications.length === 0) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <Icon name="Loader" size={24} className="animate-spin mx-auto mb-4" />
+          <p>Loading applications...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
       <AuthenticatedHeader user={adminUser} onLogout={handleLogout} />
+      
       {/* Sidebar */}
       <RoleBasedSidebar
         user={adminUser}
         isCollapsed={isSidebarCollapsed}
         onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
       />
+      
       {/* Main Content */}
       <main className={`pt-16 transition-all duration-300 ${
         isSidebarCollapsed ? 'ml-16' : 'ml-64'
@@ -248,11 +304,13 @@ const AdminDashboard = () => {
             <div className="flex items-center space-x-3 mt-4 lg:mt-0">
               <Button
                 variant="outline"
-                iconName="Download"
+                iconName="RefreshCw"
                 iconPosition="left"
                 iconSize={16}
+                onClick={loadApplications}
+                disabled={loading}
               >
-                Export Data
+                Refresh
               </Button>
               <Button
                 variant="default"
@@ -265,17 +323,27 @@ const AdminDashboard = () => {
             </div>
           </div>
 
+          {/* Error Message */}
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <div className="flex items-center">
+                <Icon name="AlertTriangle" size={20} className="text-red-600 mr-2" />
+                <span className="text-red-700">{error}</span>
+              </div>
+            </div>
+          )}
+
           {/* Statistics Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            {statistics?.map((stat, index) => (
+            {statistics.map((stat, index) => (
               <StatisticsCard
                 key={index}
-                title={stat?.title}
-                value={stat?.value}
-                change={stat?.change}
-                changeType={stat?.changeType}
-                icon={stat?.icon}
-                color={stat?.color}
+                title={stat.title}
+                value={stat.value}
+                change={stat.change}
+                changeType={stat.changeType}
+                icon={stat.icon}
+                color={stat.color}
               />
             ))}
           </div>
@@ -303,6 +371,7 @@ const AdminDashboard = () => {
                   applications={filteredApplications}
                   onStatusChange={handleStatusChange}
                   onBulkAction={handleBulkAction}
+                  loading={loading}
                 />
               </div>
             </div>
@@ -366,13 +435,6 @@ const AdminDashboard = () => {
                 </h3>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Server Status</span>
-                    <div className="flex items-center">
-                      <div className="w-2 h-2 bg-success rounded-full mr-2"></div>
-                      <span className="text-sm text-success">Online</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between">
                     <span className="text-sm text-muted-foreground">Database</span>
                     <div className="flex items-center">
                       <div className="w-2 h-2 bg-success rounded-full mr-2"></div>
@@ -387,8 +449,12 @@ const AdminDashboard = () => {
                     </div>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Last Backup</span>
-                    <span className="text-sm text-foreground">2 hours ago</span>
+                    <span className="text-sm text-muted-foreground">Applications</span>
+                    <span className="text-sm text-foreground">{applications.length} total</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Last Updated</span>
+                    <span className="text-sm text-foreground">Just now</span>
                   </div>
                 </div>
               </div>

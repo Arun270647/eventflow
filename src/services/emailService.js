@@ -1,48 +1,28 @@
-// Email Service using Resend API for React + Supabase applications
+// Simple Email Service for artist notifications
+// This is a mock implementation that simulates email sending
+// In production, you would integrate with a real email service
+
 class EmailService {
   constructor() {
-    this.resendApiKey = import.meta.env.VITE_RESEND_API_KEY;
-    this.fromEmail = import.meta.env.VITE_FROM_EMAIL || 'noreply@eventflow.com';
+    this.fromEmail = 'noreply@eventflow.com';
   }
 
+  // Mock email sending - in production, integrate with a real email service
   async sendEmail({ to, subject, html, text }) {
-    if (!this.resendApiKey) {
-      console.error('Resend API key not found');
-      throw new Error('Email service not configured');
-    }
-
-    try {
-      const response = await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${this.resendApiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          from: this.fromEmail,
-          to: [to],
-          subject,
-          html: html || text,
-          text: text || html?.replace(/<[^>]*>/g, ''), // Strip HTML for text version
-        }),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(`Email sending failed: ${error.message}`);
-      }
-
-      const result = await response.json();
-      console.log('Email sent successfully:', result);
-      return result;
-    } catch (error) {
-      console.error('Email service error:', error);
-      throw error;
-    }
+    console.log('📧 Sending email:', { to, subject });
+    
+    // Simulate email sending delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Log email content for debugging
+    console.log('Email content:', html || text);
+    
+    // In production, replace this with actual email service integration
+    return { success: true, messageId: `mock-${Date.now()}` };
   }
 
   async sendArtistApprovalEmail(artistData) {
-    const { email, fullName, artistName } = artistData;
+    const { email, fullName, stageName } = artistData;
     
     const subject = '🎉 Your EventFlow Artist Application has been Approved!';
     
@@ -106,15 +86,15 @@ class EmailService {
           </div>
           
           <div class="content">
-            <p>Dear ${fullName || artistName},</p>
+            <p>Dear ${fullName || stageName},</p>
             
             <p>We're excited to inform you that your artist application for <strong>EventFlow</strong> has been approved! Welcome to our community of talented performers.</p>
             
             <div class="credentials">
-              <h3>Your Login Credentials:</h3>
+              <h3>Your Account is Now Active:</h3>
               <p><strong>Email:</strong> ${email}</p>
-              <p><strong>Password:</strong> Use the password you created during registration</p>
-              <p><strong>Role:</strong> Artist</p>
+              <p><strong>Status:</strong> Approved Artist</p>
+              <p><strong>Stage Name:</strong> ${stageName}</p>
             </div>
             
             <p>You can now:</p>
@@ -154,7 +134,7 @@ class EmailService {
   }
 
   async sendArtistRejectionEmail(artistData, reason = '') {
-    const { email, fullName, artistName } = artistData;
+    const { email, fullName, stageName } = artistData;
     
     const subject = 'EventFlow Artist Application Update';
     
@@ -217,7 +197,7 @@ class EmailService {
           </div>
           
           <div class="content">
-            <p>Dear ${fullName || artistName},</p>
+            <p>Dear ${fullName || stageName},</p>
             
             <p>Thank you for your interest in joining EventFlow as a performing artist. After careful review of your application, we regret to inform you that we cannot approve your application at this time.</p>
             

@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
+import { artistService } from '../../services/artistService';
 import { AuthenticatedHeader } from '../../components/ui/AuthenticatedHeader';
 import NavigationBreadcrumbs from '../../components/ui/NavigationBreadcrumbs';
 import Button from '../../components/ui/Button';

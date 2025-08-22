@@ -191,20 +191,25 @@ const ArtistApplicationForm = () => {
     setIsSubmitting(true);
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Get current user from auth context
+      if (!user || !user.id) {
+        throw new Error('User not authenticated');
+      }
+
+      // Submit application to database
+      const applicationData = await artistService.submitArtistApplication(formData, user.id);
       
       // Clear saved draft
       localStorage.removeItem('artistApplicationDraft');
       localStorage.removeItem('artistApplicationStep');
       
       // Show success and redirect
-      alert('Application submitted successfully! You will receive a confirmation email shortly.');
+      alert('Application submitted successfully! You will receive a confirmation email once reviewed by our team.');
       navigate('/artist-portal-dashboard');
       
     } catch (error) {
       console.error('Submission error:', error);
-      alert('There was an error submitting your application. Please try again.');
+      alert(`There was an error submitting your application: ${error.message}. Please try again.`);
     } finally {
       setIsSubmitting(false);
       setShowSubmissionModal(false);
